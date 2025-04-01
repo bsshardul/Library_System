@@ -7,6 +7,7 @@ import AddBook from "./routes/addbook.jsx";
 import CheckIn from "./routes/checkin.jsx";
 import CheckOut from "./routes/checkout.jsx";
 import Analytics from "./routes/analytics.jsx";
+import AddBookdetails from "./routes/addbookdetails.jsx";
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
       <Route path="/dashboard/*" element={<Dashboard />}>
         <Route path="addpatron" element={<AddPatron />} />
         <Route path="addbook" element={<AddBook />} />
+        <Route path="addbook/details" element={<AddBookdetails />} />
         <Route path="checkin" element={<CheckIn />} />
         <Route path="checkout" element={<CheckOut />} />
         <Route path="analytics" element={<Analytics />} />
