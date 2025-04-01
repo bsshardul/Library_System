@@ -40,3 +40,102 @@
 .read-the-docs {
   color: #888;
 }
+body {
+  font-family: 'Arial', sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  background-color: #f4f4f4;
+}
+
+.container-fluid {
+  max-width: 1200px;
+}
+
+nav {
+  background-color: #0061F2;
+}
+
+nav a {
+  text-decoration: none;
+  color: #fff;
+}
+
+nav .nav-link:hover {
+  color: #f8f9fa;
+  background-color: #0056b3;
+}
+
+.sidebar {
+  background-color: #f8f9fa;
+}
+
+.sidebar .nav-link {
+  text-decoration: none;
+}
+
+footer {
+  background-color: #333;
+  color: white;
+}
+
+footer .footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+footer a {
+  color: white;
+  text-decoration: none;
+}
+footer a:hover {
+  text-decoration: underline;
+}
+.checkout-container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+}
+
+h2 {
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.checkout-status {
+  margin-top: 20px;
+  text-align: center;
+  font-weight: bold;
+}

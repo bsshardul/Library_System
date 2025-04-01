@@ -1,8 +1,11 @@
 import React from "react";
 
+import Footer from "../components/common/footer";
 const AddPatron = () => {
   return (
+  
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg  text-black">
+    
       <h2 className="text-2xl font-bold mb-4  text-black">Add Patron</h2>
       <form>
         {/* First Name */}
@@ -89,11 +92,12 @@ const AddPatron = () => {
         {/* Submit Button */}
         <button
           type="submit"
-          className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+          className="bg-black-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
         >
           Add Patron
         </button>
       </form>
+      <Footer />
     </div>
   );
 };

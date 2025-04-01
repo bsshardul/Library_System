@@ -4,7 +4,7 @@ const Header = () => {
   return (
   
  
-    <header className="bg-blue-600 text-white py-4 px-6 flex justify-between items-center">
+    <header className="bg-black-600 text-white py-4 px-6 flex justify-between items-center">
       <h1 className="text-2xl font-bold">Library System Dashboard</h1>
       {/* Search Bar */}
       <div className="flex items-center">

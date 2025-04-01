@@ -2,12 +2,12 @@ import React from 'react';
 import { Link, Outlet } from "react-router-dom";
 const Sidebar = () => {
     return (
-      <nav className="bg-gray-200 w-60 p-4">
+      <nav className="bg-black-200 w-60 p-4">
         <ul className="space-y-4">
           <li>
             <Link
               to="/dashboard/addpatron"
-              className="block py-2 px-4 text-blue-600 hover:bg-blue-100 rounded"
+              className="block py-2 px-4 text-white-600 hover:bg-blue-100 rounded"
             >
               Add Patron
             </Link>
