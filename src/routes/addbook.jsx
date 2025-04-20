@@ -1,82 +1,210 @@
-// import React from "react";
+
+// import React, { useState } from "react";
+// import axios from "axios";
+// import Footer from "../components/common/footer";
 
 // const AddBook = () => {
+//   const [formData, setFormData] = useState({
+//     id: "",
+//     title: "",
+//     isbn: "",
+//     category_id: "",
+//     author_id: "",
+//     total_copies: "",
+//     available_copies: "",
+//   });
+
+//   const handleChange = (e) => {
+//     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+  
+//     // Ensure category_id and author_id are valid integers
+//     if (formData.category_id === '') {
+//       formData.category_id = null; // Or handle with a default valid value
+//     }
+  
+//     if (formData.author_id === '') {
+//       formData.author_id = null; // Or handle with a default valid value
+//     }
+  
+//     try {
+//       const res = await axios.post("http://localhost:3000/api/books/add", formData);
+//       alert(res.data.message);
+//       setFormData({
+//         id: "",
+//         title: "",
+//         isbn: "",
+//         category_id: "",
+//         author_id: "",
+//         total_copies: "",
+//         available_copies: "",
+//       });
+//     } catch (err) {
+//       console.error("Error adding book:", err);
+//       alert("Failed to add book.");
+//     }
+//   };
+  
+
+
 //   return (
-//     <div className="bg-white shadow rounded-lg p-6">
-//       <h2 className="text-xl font-bold  mb-4 text-black">Add Book</h2>
-//       <p className="text-gray-800">This is the Add Book page. Use this section to add new books to the library catalog.</p>
+//     <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg text-black">
+//       <h2 className="text-2xl font-bold mb-4 text-black">Add Book</h2>
+//       <form onSubmit={handleSubmit}>
+//         {[
+//           { name: "id", type: "text", placeholder: "ID" },
+//           { name: "title", type: "text", placeholder: "Title" },
+//           { name: "isbn", type: "text", placeholder: "ISBN" },
+//           { name: "category_id", type: "text", placeholder: "Category ID" },
+//           { name: "author_id", type: "text", placeholder: "Author ID" },
+//           { name: "total_copies", type: "number", placeholder: "Total Copies" },
+//           { name: "available_copies", type: "number", placeholder: "Available Copies" },
+//         ].map((field) => (
+//           <div className="mb-4" key={field.name}>
+//             <label className="block text-gray-700 font-medium mb-2">
+//               {field.placeholder}
+//             </label>
+//             <input
+//               type={field.type}
+//               name={field.name}
+//               placeholder={field.placeholder}
+//               value={formData[field.name]}
+//               onChange={handleChange}
+//               className="w-full border border-gray-300 p-2 rounded-lg"
+//             />
+//           </div>
+//         ))}
+
+//         <button
+//           type="submit"
+//           className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+//         >
+//           Add Book
+//         </button>
+//       </form>
+//       <Footer />
 //     </div>
 //   );
 // };
 
 // export default AddBook;
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import axios from "axios";
+import Footer from "../components/common/footer";
 
+const AddBook = () => {
+  const [formData, setFormData] = useState({
+    id: "",
+    title: "",
+    isbn: "",
+    category_id: "",
+    author_id: "",
+    total_copies: "",
+    available_copies: "",
+  });
 
-function AddBook(){
+  const [statusMessage, setStatusMessage] = useState(""); // New state for success/error message
 
-  const navigate = useNavigate();
-
-  const AddBookdetails = () => {
-    console.log("Navigating to AddBookDetails...");
-    navigate("/dashboard/addbook/details");
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Ensure category_id and author_id are valid integers
+    if (formData.category_id === "") {
+      formData.category_id = null; // Or handle with a default valid value
+    }
+
+    if (formData.author_id === "") {
+      formData.author_id = null; // Or handle with a default valid value
+    }
+
+    try {
+      const res = await axios.post("http://localhost:3000/api/books/add", formData);
+      
+      // Set status message based on the response
+      setStatusMessage({
+        type: "success",
+        message: res.data.message || "Book added successfully!", // Display success message
+      });
+
+      // Reset form
+      setFormData({
+        id: "",
+        title: "",
+        isbn: "",
+        category_id: "",
+        author_id: "",
+        total_copies: "",
+        available_copies: "",
+      });
+    } catch (err) {
+      console.error("Error adding book:", err);
+
+      // Set error message if something goes wrong
+      setStatusMessage({
+        type: "error",
+        message: "Failed to add book. Please try again.",
+      });
+    }
+  };
+
   return (
+    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg text-black">
+      <h2 className="text-2xl font-bold mb-4 text-black">Add Book</h2>
 
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg  text-black">
-      <h2 className="text-2xl font-bold mb-4  text-black">Add Book</h2>
-      <form>
-        {/* Book Id */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">BookID</label>
-          <input
-            type="text"
-            placeholder="BookID"
-            className="w-full border border-gray-300 p-2 rounded-lg"
-          />
+      {/* Displaying the status message */}
+      {statusMessage && (
+        <div
+          className={`mb-4 p-2 rounded-lg ${
+            statusMessage.type === "success"
+              ? "bg-green-100 text-green-600"
+              : "bg-red-100 text-red-600"
+          }`}
+        >
+          {statusMessage.message}
         </div>
+      )}
 
-        {/* Meta ID */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">MetaID</label>
-          <input
-            type="text"
-            placeholder="Enter MetaID"
-            className="w-full border border-gray-300 p-2 rounded-lg"
-          />
-        </div>
+      <form onSubmit={handleSubmit}>
+        {[
+          { name: "id", type: "text", placeholder: "ID" },
+          { name: "title", type: "text", placeholder: "Title" },
+          { name: "isbn", type: "text", placeholder: "ISBN" },
+          { name: "category_id", type: "text", placeholder: "Category ID" },
+          { name: "author_id", type: "text", placeholder: "Author ID" },
+          { name: "total_copies", type: "number", placeholder: "Total Copies" },
+          { name: "available_copies", type: "number", placeholder: "Available Copies" },
+        ].map((field) => (
+          <div className="mb-4" key={field.name}>
+            <label className="block text-gray-700 font-medium mb-2">
+              {field.placeholder}
+            </label>
+            <input
+              type={field.type}
+              name={field.name}
+              placeholder={field.placeholder}
+              value={formData[field.name]}
+              onChange={handleChange}
+              className="w-full border border-gray-300 p-2 rounded-lg"
+            />
+          </div>
+        ))}
 
-        {/* RFID */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">RFID</label>
-          <input
-            type="text"
-            placeholder="Scanned RFID"
-            className="w-full border border-gray-300 p-2 rounded-lg"
-          />
-        </div>
-
-        {/* Date of Arrival */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Date of arrival</label>
-          <input
-            type="date"
-            className="w-full border border-gray-300 p-2 rounded-lg "
-          />
-        </div>
-
-        {/* Submit Button */}
         <button
           type="submit"
-          className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
-          onClick= {AddBookdetails}
+          className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
         >
-          Next
+          Add Book
         </button>
       </form>
+      <Footer />
     </div>
-
   );
 };
 

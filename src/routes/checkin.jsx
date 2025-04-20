@@ -1,233 +1,209 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Input } from "../components/input";
 
 const CheckIn = () => {
-  const [bookId, setBookId] = useState("");
-  const [patronData, setPatronData] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
-  const [editData, setEditData] = useState({});
+  const [rfid, setRfid] = useState("");
+  const [patron, setPatron] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [availableBooks, setAvailableBooks] = useState([]);
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [message, setMessage] = useState("");
 
-  const handleInputChange = (e) => {
-    const value = e.target.value;
-    if (/^\d*$/.test(value)) {
-      setBookId(value);
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/rfid");
+        if (!res.ok) throw new Error("RFID endpoint not found");
+        const data = await res.json();
+
+        if (data.rfid && data.rfid !== rfid) {
+          setRfid(data.rfid);
+          fetchPatronData(data.rfid);
+          fetchAvailableBooks();
+        }
+      } catch (err) {
+        console.error("RFID Poll Error:", err.message);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [rfid]);
+
+  const fetchPatronData = async (rfidTag) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/patron-info/${rfidTag}`);
+      if (!res.ok) throw new Error("Patron not found");
+      const data = await res.json();
+      setPatron(data.patron);
+      setHistory(data.history);
+    } catch (err) {
+      console.error("Fetch Patron Info Error:", err.message);
+      setPatron(null);
+      setHistory([]);
     }
   };
 
-  const handleCheckIn = () => {
-    // Simulated data for 15 patrons
-    const patrons = Array.from({ length: 15 }, (_, index) => ({
-      patronName: `Patron ${index + 1}`,
-      patronId: `${1000 + index}`,
-      dateOfIssue: `2023-01-${String(index + 1).padStart(2, "0")}`,
-      dateOfResubmission: `2023-01-${String(index + 15).padStart(2, "0")}`,
-      numberOfDays: 14 + index,
-      bookId: bookId || `B00${index + 1}`,
-      bookTitle: `Book Title ${index + 1}`,
-      bookCategory: `Category ${
-        index % 3 === 0
-          ? "Programming"
-          : index % 3 === 1
-          ? "Fiction"
-          : "Science"
-      }`,
-      fineAmount: 50 + index * 10,
-    }));
-    setPatronData(patrons); // Set array of patrons
+  const fetchAvailableBooks = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/available-books");
+      const data = await res.json();
+      setAvailableBooks(data.books || []);
+    } catch (err) {
+      console.error("Fetch Books Error:", err.message);
+      setAvailableBooks([]);
+    }
   };
 
-  const handleReissue = (index) => {
-    const newPatron = {
-      ...patronData[index],
-      dateOfIssue: new Date().toISOString().split("T")[0],
-      dateOfResubmission: "",
-      numberOfDays: "",
-      fineAmount: "",
-    };
-    setPatronData([...patronData, newPatron]);
+  const handleIssueBook = async () => {
+    if (!selectedBook) {
+      setMessage("Please select a book to issue.");
+      return;
+    }
+  
+    try {
+      // Log the data that is about to be sent to the backend
+      console.log("Issuing book with data:", { rfid, bookId: selectedBook });
+  
+      const res = await fetch("http://localhost:3000/api/issue-book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rfid, bookId: selectedBook }),
+      });
+  
+      // If the response is not OK, throw an error
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to issue book");
+      }
+  
+      const data = await res.json();
+      setMessage(data.message);
+  
+      // Fetch patron data and available books after the issue
+      fetchPatronData(rfid);
+      fetchAvailableBooks();
+      setSelectedBook(null);
+    } catch (err) {
+      console.error("Error during book issue:", err.message);
+      setMessage(err.message);
+    }
   };
-
-  const handleEdit = (index) => {
-    setEditIndex(index);
-    setEditData(patronData[index]);
-  };
-
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditData({ ...editData, [name]: value });
-  };
-
-  const handleEditSubmit = () => {
-    const updatedPatrons = patronData.map((patron, index) =>
-      index === editIndex ? editData : patron
-    );
-    setPatronData(updatedPatrons);
-    setEditIndex(null);
-    setEditData({});
-  };
-
+  
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-xl font-bold mb-4 text-black">Check In</h2>
-      <p className="text-gray-800">
-        This is the Check-In page. Use this section to check in returned books.
-      </p>
+    <div className="bg-white p-6 rounded-lg shadow">
+      <h2 className="text-xl font-bold mb-4 text-black">📚 RFID Book Issue</h2>
+
       <div className="mb-4 flex items-center space-x-4">
-        <label htmlFor="bookId" className="text-gray-700">
-          Enter Book ID:
-        </label>
+        <label htmlFor="rfid" className="text-gray-700">RFID Tag:</label>
         <Input
           type="text"
-          id="bookId"
-          value={bookId}
-          onChange={handleInputChange}
+          id="rfid"
+          value={rfid}
+          readOnly
           className="text-blue-600 w-1/3"
         />
-        <button
-          onClick={handleCheckIn}
-          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-300"
-        >
-          Search
-        </button>
       </div>
-      {patronData.length > 0 && (
-        <div className="mb-4">
-          <p className="text-gray-800">Book ID: {patronData[0].bookId}</p>
-          <p className="text-gray-800">Book Title: {patronData[0].bookTitle}</p>
-          <p className="text-gray-800">
-            Book Category: {patronData[0].bookCategory}
-          </p>
-        </div>
-      )}
-      {patronData.length > 0 && (
-        <table className="min-w-full bg-aliceblue">
-          <thead>
-            <tr className="bg-blue-200">
-              <th className="py-2 text-blue-800">Patron Name</th>
-              <th className="py-2 text-blue-800">Patron ID</th>
-              <th className="py-2 text-blue-800">Date of Issue</th>
-              <th className="py-2 text-blue-800">Date of Submission</th>
-              <th className="py-2 text-blue-800">Number of Days</th>
-              <th className="py-2 text-blue-800">Fine (in Rupees)</th>
-              <th className="py-2 text-blue-800">Reissue</th>
-              <th className="py-2 text-blue-800">Edit</th>
-            </tr>
-          </thead>
-          <tbody>
-            {patronData.map((patron, index) => (
-              <tr key={index} className="bg-white">
-                <td className="border px-4 py-2 text-blue-600">
-                  {patron.patronName}
-                </td>
-                <td className="border px-4 py-2 text-blue-600">
-                  {patron.patronId}
-                </td>
-                <td className="border px-4 py-2 text-blue-600">
-                  {patron.dateOfIssue}
-                </td>
-                <td className="border px-4 py-2 text-blue-600">
-                  {patron.dateOfResubmission}
-                </td>
-                <td className="border px-4 py-2 text-blue-600">
-                  {patron.numberOfDays}
-                </td>
-                <td className="border px-4 py-2 text-blue-600">
-                  {patron.fineAmount}
-                </td>
-                <td className="border px-4 py-2 text-blue-600">
-                  <button
-                    onClick={() => handleReissue(index)}
-                    className="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition duration-300"
-                  >
-                    Check In
-                  </button>
-                </td>
-                <td className="border px-4 py-2 text-blue-600">
-                  <button
-                    onClick={() => handleEdit(index)}
-                    className="bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-600 transition duration-300"
-                  >
-                    Edit
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      {editIndex !== null && (
+
+      {patron && (
         <div className="mt-4">
-          <h3 className="text-lg font-bold mb-2">Edit Patron Details</h3>
-          <form onSubmit={handleEditSubmit}>
-            <div className="mb-2">
-              <label className="block text-gray-700">Patron Name:</label>
-              <Input
-                type="text"
-                name="patronName"
-                value={editData.patronName}
-                onChange={handleEditChange}
-                className="text-blue-600 w-full"
-              />
-            </div>
-            <div className="mb-2">
-              <label className="block text-gray-700">Patron ID:</label>
-              <Input
-                type="text"
-                name="patronId"
-                value={editData.patronId}
-                onChange={handleEditChange}
-                className="text-blue-600 w-full"
-              />
-            </div>
-            <div className="mb-2">
-              <label className="block text-gray-700">Date of Issue:</label>
-              <Input
-                type="date"
-                name="dateOfIssue"
-                value={editData.dateOfIssue}
-                onChange={handleEditChange}
-                className="text-blue-600 w-full"
-              />
-            </div>
-            <div className="mb-2">
-              <label className="block text-gray-700">Date of Submission:</label>
-              <Input
-                type="date"
-                name="dateOfResubmission"
-                value={editData.dateOfResubmission}
-                onChange={handleEditChange}
-                className="text-blue-600 w-full"
-              />
-            </div>
-            <div className="mb-2">
-              <label className="block text-gray-700">Number of Days:</label>
-              <Input
-                type="number"
-                name="numberOfDays"
-                value={editData.numberOfDays}
-                onChange={handleEditChange}
-                className="text-blue-600 w-full"
-              />
-            </div>
-            <div className="mb-2">
-              <label className="block text-gray-700">Fine (in Rupees):</label>
-              <Input
-                type="number"
-                name="fineAmount"
-                value={editData.fineAmount}
-                onChange={handleEditChange}
-                className="text-blue-600 w-full"
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-300"
-            >
-              Save
-            </button>
-          </form>
+          <h3 className="text-lg font-semibold text-black mb-2">👤 Patron Details</h3>
+          <table className="min-w-full border text-sm text-left text-gray-800">
+            <tbody>
+              <tr><td className="border px-4 py-2 font-medium">Name</td><td className="border px-4 py-2">{patron.first_name} {patron.middle_name} {patron.last_name}</td></tr>
+              <tr><td className="border px-4 py-2 font-medium">Category</td><td className="border px-4 py-2">{patron.category}</td></tr>
+              <tr><td className="border px-4 py-2 font-medium">Contact</td><td className="border px-4 py-2">{patron.contact_info}</td></tr>
+            </tbody>
+          </table>
         </div>
       )}
+
+      {history.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">📖 Issue History</h3>
+          <table className="min-w-full text-sm border text-left">
+            <thead className="bg-gray-100 text-black">
+              <tr>
+                <th className="py-2 px-4 border">Book Title</th>
+                <th className="py-2 px-4 border">Issued On</th>
+                <th className="py-2 px-4 border">Return Date</th>
+                <th className="py-2 px-4 border">Returned</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.map((record, index) => (
+                <tr key={index} className="border-t">
+                  <td className="py-2 text-black px-4">{record.title}</td>
+                  <td className="py-2  text-black px-4">{new Date(record.issue_date).toLocaleDateString()}</td>
+                  <td className="py-2  text-black px-4">{new Date(record.return_date).toLocaleDateString()}</td>
+                  <td className="py-2 text-black px-4">{record.returned ? "Yes" : "No"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+{patron && (
+  <div className="mt-6">
+    <h3 className="text-lg font-semibold text-black mb-2">📗 Issue a Book</h3>
+
+    <Input
+      type="text"
+      placeholder="Search by book title..."
+      className="text-black mb-2"
+      value={
+        selectedBook
+          ? availableBooks.find((b) => b.id === selectedBook)?.title || ""
+          : ""
+      }
+      onChange={(e) => {
+        const input = e.target.value.toLowerCase();
+        const match = availableBooks.find((book) =>
+          book.title.toLowerCase().includes(input)
+        );
+        setSelectedBook(match?.id || null);
+      }}
+    />
+
+    {/* Optional: Show matching suggestions */}
+    {!selectedBook && (
+      <ul className="border border-gray-300 rounded max-h-40 overflow-y-auto bg-white text-black text-sm">
+        {availableBooks
+          .filter((book) =>
+            book.title.toLowerCase().includes(
+              availableBooks.find((b) => b.id === selectedBook)?.title?.toLowerCase() || ""
+            )
+          )
+          .slice(0, 5) // Limit suggestions
+          .map((book) => (
+            <li
+              key={book.id}
+              className="p-2 hover:bg-gray-200 cursor-pointer"
+              onClick={() => setSelectedBook(book.id)}
+            >
+              {book.title}
+            </li>
+          ))}
+      </ul>
+    )}
+
+    {selectedBook && (
+      <div className="text-sm text-green-700 mb-2">
+        Selected: {availableBooks.find((b) => b.id === selectedBook)?.title}
+      </div>
+    )}
+
+    <button
+      onClick={handleIssueBook}
+      className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+    >
+      Issue Book
+    </button>
+  </div>
+)}
+
+      {message && <div className="mt-4 text-gray-800">{message}</div>}
     </div>
   );
 };

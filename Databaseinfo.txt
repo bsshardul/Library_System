@@ -1,0 +1,119 @@
+Patron
+-------
+id (PK)
+name
+email
+
+Book
+-------
+id (PK)
+title
+category_id (FK)
+author_id (FK)
+isbn
+available_copies
+total_copies
+
+Author
+-------
+id (PK)
+name
+
+Category
+---------
+id (PK)
+name
+
+IssueRecord
+-------------
+id (PK)
+patron_id (FK)
+book_id (FK)
+issue_date
+return_date
+returned (boolean)
+
+-- 🔁 Reset All Tables (Optional)
+DROP TABLE IF EXISTS IssueRecord, Book, Author, Category, Patron;
+
+-- 📚 Recreate Tables (with RFID support)
+CREATE TABLE Patron (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  rfid_tag VARCHAR(100) UNIQUE,
+  first_name VARCHAR(100),
+  middle_name VARCHAR(100),
+  last_name VARCHAR(100),
+  dob DATE,
+  pronouns VARCHAR(50),
+  address TEXT,
+  contact_info VARCHAR(100),
+  category VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Author (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100)
+);
+
+CREATE TABLE Category (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100)
+);
+
+CREATE TABLE Book (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(200),
+  isbn VARCHAR(20) UNIQUE,
+  category_id INT,
+  author_id INT,
+  total_copies INT,
+  available_copies INT,
+  FOREIGN KEY (category_id) REFERENCES Category(id),
+  FOREIGN KEY (author_id) REFERENCES Author(id)
+);
+
+CREATE TABLE IssueRecord (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  patron_id INT,
+  book_id INT,
+  issue_date DATE,
+  return_date DATE,
+  returned BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (patron_id) REFERENCES Patron(id),
+  FOREIGN KEY (book_id) REFERENCES Book(id)
+);
+
+-- 👤 Insert Dummy Patrons with RFID
+INSERT INTO Patron (rfid_tag, first_name, middle_name, last_name, dob, pronouns, address, contact_info, category)
+VALUES 
+('RFID123456', 'Aarya', 'Raj', 'Mehta', '2003-08-15', 'she/her', 'Pune, Maharashtra', 'aarya@example.com', 'student'),
+('RFID654321', 'Vedant', 'Kumar', 'Sharma', '2002-05-21', 'he/him', 'Mumbai, Maharashtra', 'vedant@example.com', 'faculty');
+
+-- ✍️ Insert Authors
+INSERT INTO Author (name)
+VALUES 
+('Chetan Bhagat'),
+('Arundhati Roy'),
+('Sudha Murty');
+
+-- 🗂️ Insert Categories
+INSERT INTO Category (name)
+VALUES 
+('Fiction'),
+('Science'),
+('Biography');
+
+-- 📖 Insert Books
+INSERT INTO Book (title, isbn, category_id, author_id, total_copies, available_copies)
+VALUES 
+('The 3 Mistakes of My Life', '9788129135513', 1, 1, 5, 3),
+('The God of Small Things', '9780679772872', 1, 2, 4, 4),
+('Wise and Otherwise', '9780143062226', 3, 3, 3, 1);
+
+-- 📘 Insert Issue Records
+INSERT INTO IssueRecord (patron_id, book_id, issue_date, return_date, returned)
+VALUES 
+(1, 1, '2025-03-15', '2025-03-30', TRUE),
+(1, 3, '2025-04-01', NULL, FALSE),
+(2, 2, '2025-03-10', '2025-03-20', TRUE);

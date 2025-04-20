@@ -25,7 +25,7 @@ const Sidebar = () => {
               to="/dashboard/checkin"
               className="block py-2 px-4 text-blue-600 hover:bg-blue-100 rounded"
             >
-              Check In
+              Check Out
             </Link>
           </li>
           <li>
@@ -33,7 +33,7 @@ const Sidebar = () => {
               to="/dashboard/checkout"
               className="block py-2 px-4 text-blue-600 hover:bg-blue-100 rounded"
             >
-              Check Out
+             Check In
             </Link>
           </li>
           <li>

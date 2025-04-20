@@ -80,11 +80,26 @@ const Login = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate(); // Make sure useNavigate is used here
 
-  const handleLogin = (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault();
-    // Directly navigate to the dashboard after login without checking credentials
-    navigate('/dashboard');
+    try {
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values)
+      });
+  
+      const data = await response.json();
+      if (data.success) {
+        navigate('/dashboard');
+      } else {
+        setError(data.message);
+      }
+    } catch (err) {
+      setError("Server error. Try again later.");
+    }
   };
+  
 
   return (
     <div className="loginPage">
